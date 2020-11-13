@@ -70,21 +70,19 @@ public class TubesPemnetServer {
                             toClient.writeInt(1);
                             
                             //Mengirimkan seluruh data kandidat
-                            toClient.writeObject(listKandidat);
+                            toClient.writeObject(listKandidat.toArray());
                             
                             //Menambahkan jumlah suara dari chosenKandidat(kandidat yang divote)
-                            Kandidat chosenKandidat = (Kandidat) fromClient.readObject();
-                            upvoteKandidat(chosenKandidat.getId());
+                            int chosenKandidat = fromClient.readInt();
+                            upvoteKandidat(chosenKandidat);
                             
                             //Mengirimkan seluruh data kandidat yang sudah diperbarui
-                            toClient.writeObject(listKandidat);
+                            toClient.writeObject(listKandidat.toArray());
                             
                             //menandai voter sudah memilih
                             voterHasVote(currId);
                         }
                     } catch (IOException ex) {
-                        Logger.getLogger(TubesPemnetServer.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (ClassNotFoundException ex){
                         Logger.getLogger(TubesPemnetServer.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 });
