@@ -1,7 +1,9 @@
 
-package tubes.pemnetserver;
+package Kandidat;
 
-public class Kandidat {
+import java.io.Serializable;
+
+public class Kandidat implements Serializable {
     
     int id;
     String nama;
@@ -37,6 +39,12 @@ public class Kandidat {
         return JumlahSuara;
     }
     
+    public boolean equals(int id){
+        return this.id == id;
+    }
     
+    public void upvote(){
+        JumlahSuara++;
+    }
     
 }
