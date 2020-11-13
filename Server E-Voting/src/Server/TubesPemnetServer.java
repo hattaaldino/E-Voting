@@ -70,14 +70,15 @@ public class TubesPemnetServer {
                             toClient.writeInt(1);
                             
                             //Mengirimkan seluruh data kandidat
-                            toClient.writeObject(listKandidat.toArray());
+                            int listKanSize = listKandidat.size();
+                            toClient.writeObject(listKandidat.toArray(new Kandidat[listKanSize]));
                             
                             //Menambahkan jumlah suara dari chosenKandidat(kandidat yang divote)
                             int chosenKandidat = fromClient.readInt();
                             upvoteKandidat(chosenKandidat);
                             
                             //Mengirimkan seluruh data kandidat yang sudah diperbarui
-                            toClient.writeObject(listKandidat.toArray());
+                            toClient.writeObject(listKandidat.toArray(new Kandidat[listKanSize]));
                             
                             //menandai voter sudah memilih
                             voterHasVote(currId);
