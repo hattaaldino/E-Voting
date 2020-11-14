@@ -38,11 +38,6 @@ public class TubesPemnetServer {
                     Kandidat Calon = new Kandidat(i+1,namaKandidat[i]);
                     listKandidat.add(Calon);
                 }
-                
-                //testing
-                for(int i=0; i<listKandidat.size(); i++){
-                    System.out.println(listKandidat.get(i).getNama());
-                }
             }
             
             //kasus voter
@@ -86,7 +81,7 @@ public class TubesPemnetServer {
                     } catch (IOException ex) {
                         Logger.getLogger(TubesPemnetServer.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                });
+                }).start();
             }
         }
     }
