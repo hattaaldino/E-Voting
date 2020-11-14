@@ -1,16 +1,33 @@
 
 package view;
 
+import Response.ClientIdentity;
+import java.io.*;
+import java.net.Socket;
+
 /**
  *
  * @author HP
  */
 public class Voter2 extends javax.swing.JFrame {
-
+    String nama;
+    ClientIdentity voterIdentity;
+    Socket connection;
+    ObjectInputStream fromServer;
+    ObjectOutputStream toServer;
     /**
      * Creates new form Voter2
+     * @param nama
+     * @param identity
+     * @param connection
+     * @param fromServer
+     * @param toServer
      */
-    public Voter2() {
+    public Voter2(String nama, 
+            ClientIdentity identity, 
+            Socket connection, 
+            ObjectInputStream fromServer, 
+            ObjectOutputStream toServer) {
         initComponents();
         
     }
@@ -94,7 +111,7 @@ public class Voter2 extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Voter2().setVisible(true);
+//                new Voter2().setVisible(true);
             }
         });
     }

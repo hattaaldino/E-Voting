@@ -5,17 +5,54 @@
  */
 package view;
 
+import Response.ClientIdentity;
+import java.net.Socket;
+import java.io.*;
+import javax.swing.JOptionPane;
+import java.util.ArrayList;
 /**
  *
  * @author HP
  */
 public class Voter extends javax.swing.JFrame {
-
+    String nama;
+    int id;
+    ClientIdentity voterIdentity;
+    Socket connection;
+    ObjectInputStream fromServer;
+    ObjectOutputStream toServer;
+    
     /**
      * Creates new form Voter
      */
     public Voter() {
         initComponents();
+        /*
+        Akses file id.txt
+        Instansiasi voterIdentity pake id dari id.txt
+        Cek apakah id.txt memiliki nilai (pake if)
+        Kalau ada isi voterIdentity panggil makeConnection() lalu pindah ke voter2
+        Kalau tidak ada isi, panggil makeConnection() lalu bersiap menerima id dari server
+        */
+    }
+    
+    public void makeConnection(){
+        try {
+            this.connection = new Socket("127.0.0.1", 50100);
+            this.toServer = new ObjectOutputStream(connection.getOutputStream());
+            this.fromServer = new ObjectInputStream(connection.getInputStream());
+            
+            //Mengirimkan voterIdentity ke server
+            toServer.writeObject(voterIdentity);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(rootPane, 
+                    "Can't connect to server! Please check your internet connection or try to restart the application", 
+                    "Connection Failed", 
+                    JOptionPane.ERROR_MESSAGE);
+            
+            //Terminating JVM
+            System.exit(0);
+        }
     }
 
     /**
@@ -45,6 +82,11 @@ public class Voter extends javax.swing.JFrame {
         });
 
         jButton1.setText("Next");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -59,16 +101,16 @@ public class Voter extends javax.swing.JFrame {
                         .addGap(149, 149, 149)
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(134, 134, 134)
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(130, 130, 130)
+                        .addComponent(jLabel2)))
                 .addContainerGap(67, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(87, 87, 87)
+                .addGap(99, 99, 99)
                 .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(34, 34, 34)
                 .addComponent(jButton1)
@@ -81,6 +123,25 @@ public class Voter extends javax.swing.JFrame {
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField1ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        if(!jTextField1.getText().equals("")){
+           this.nama = jTextField1.getText();
+           
+           //Mematikan windows yang aktif
+           dispose();
+           //Menampilkan jframe voter2
+           Voter2 vote = new Voter2(this.nama, 
+                                    this.voterIdentity, 
+                                    this.connection,
+                                    this.fromServer,
+                                    this.toServer);
+           vote.setLocationRelativeTo(null);
+           vote.setDefaultCloseOperation(EXIT_ON_CLOSE);
+           vote.setVisible(true);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
