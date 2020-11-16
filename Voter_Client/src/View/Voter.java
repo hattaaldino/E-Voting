@@ -45,6 +45,7 @@ public class Voter extends javax.swing.JFrame {
             //Mengirimkan voterIdentity ke server
             toServer.writeObject(voterIdentity);
         } catch (IOException ex) {
+            //Show error dialog about inablitiy to access server
             JOptionPane.showMessageDialog(rootPane, 
                     "Can't connect to server! Please check your internet connection or try to restart the application", 
                     "Connection Failed", 
@@ -131,12 +132,14 @@ public class Voter extends javax.swing.JFrame {
            
            //Mematikan windows yang aktif
            dispose();
+           
            //Menampilkan jframe voter2
            Voter2 vote = new Voter2(this.nama, 
                                     this.voterIdentity, 
                                     this.connection,
                                     this.fromServer,
                                     this.toServer);
+           
            vote.setLocationRelativeTo(null);
            vote.setDefaultCloseOperation(EXIT_ON_CLOSE);
            vote.setVisible(true);
