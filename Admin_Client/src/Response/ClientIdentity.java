@@ -13,7 +13,7 @@ import java.io.Serializable;
  */
 public class ClientIdentity implements Serializable{
     private final String role;
-    private final int id;
+    private int id;
     
     public ClientIdentity(String role, int id){
         this.role = role;
@@ -28,5 +28,7 @@ public class ClientIdentity implements Serializable{
         return id;
     }
     
-    
+    public void setId(int id){
+        this.id = id;
+    }
 }
