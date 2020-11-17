@@ -7,6 +7,7 @@ import java.io.*;
 import java.util.ArrayList;
 import Kandidat.Kandidat;
 import Response.*;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,11 +59,11 @@ public class TubesPemnetServer {
                         //cek apakah voter ini termasuk voter yang sudah memilih atau belum
                         if(hasVoted(currId)){
                             //send 0 as client can't vote
-                            toClient.writeInt(0);
+                            toClient.writeBoolean(false);
                         }
                         else{
                             //send 1 as client can vote
-                            toClient.writeInt(1);
+                            toClient.writeBoolean(true);
                             
                             //Mengirimkan seluruh data kandidat
                             int listKanSize = listKandidat.size();
@@ -72,8 +73,10 @@ public class TubesPemnetServer {
                             int chosenKandidat = fromClient.readInt();
                             upvoteKandidat(chosenKandidat);
                             
-                            //Mengirimkan seluruh data kandidat yang sudah diperbarui
-                            toClient.writeObject(listKandidat.toArray(new Kandidat[listKanSize]));
+                            //Mengirimkan seluruh data kandidat yang sudah diperbarui dan diurutkan
+                            Kandidat[] sortedKandidat = listKandidat.toArray(new Kandidat[listKanSize]);
+                            sortKandidatBySuara(sortedKandidat);
+                            toClient.writeObject(sortedKandidat);
                             
                             //menandai voter sudah memilih
                             voterHasVote(currId);
@@ -103,6 +106,10 @@ public class TubesPemnetServer {
                 listKandidat.get(i).upvote();
             }
         }
+    }
+    
+    static void sortKandidatBySuara(Kandidat[] sortedKandidat){
+        Arrays.sort(sortedKandidat);
     }
     
     //menandai voter sudah memilih

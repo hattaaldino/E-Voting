@@ -5,17 +5,91 @@
  */
 package view;
 
+import java.io.*;
+import java.net.Socket;
+import javax.swing.*;
+import java.awt.*;
+import Kandidat.Kandidat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /**
  *
  * @author HP
  */
 public class Voter3 extends javax.swing.JFrame {
-
+    Kandidat[] listKandidat;
+    JPanel pnlResultColl;
+    Socket connection;
+    ObjectInputStream fromServer;
+    ObjectOutputStream toServer;
     /**
      * Creates new form Voter3
+     * @param nama
+     * @param connection
+     * @param fromServer
+     * @param toServer
      */
-    public Voter3() {
+    @SuppressWarnings("OverridableMethodCallInConstructor")
+    public Voter3(String nama, 
+                  Socket connection, 
+                  ObjectInputStream fromServer, 
+                  ObjectOutputStream toServer) {
+        this.connection = connection;
+        this.fromServer = fromServer;
+        this.toServer = toServer;
+        
+        //Show Form
+        showForm();
+        jLabel2.setText(nama);
+        
+        //Fetch kandidat data from server
+        EventQueue.invokeLater(() -> {
+            try {
+                this.listKandidat = (Kandidat[]) fromServer.readObject();
+                constructComp();
+                jScrollPane2.setViewportView(this.pnlResultColl);
+            }catch (IOException | ClassNotFoundException ex) {
+                Logger.getLogger(Voter2.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+    }
+    
+    public void showForm(){
         initComponents();
+        this.setLocationRelativeTo(null);
+        this.setVisible(true);
+    }
+    
+    public void constructComp(){
+        this.pnlResultColl = new JPanel();
+        this.pnlResultColl.setLayout(new BoxLayout(this.pnlResultColl, BoxLayout.Y_AXIS));
+        
+        if(this.listKandidat != null){
+            for(Kandidat calon : this.listKandidat){
+                String namaKandidat = calon.getNama();
+                
+                JPanel pnl_vote = new JPanel();
+                pnl_vote.setSize(384, 14);
+                pnl_vote.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.LIGHT_GRAY));
+                GridBagLayout gridbag = new GridBagLayout();
+                GridBagConstraints cons = new GridBagConstraints();
+                pnl_vote.setLayout(gridbag);
+                
+                cons.gridwidth = GridBagConstraints.RELATIVE;
+                cons.weightx = 2.0;
+                JLabel lbl_nama = new JLabel(namaKandidat);
+                gridbag.setConstraints(lbl_nama, cons);
+                pnl_vote.add(lbl_nama);
+                
+                cons.gridwidth = GridBagConstraints.REMAINDER;
+                cons.weightx = 1.0;
+                JLabel lbl_suara = new JLabel(String.valueOf(calon.getJumlahSuara()));
+                gridbag.setConstraints(lbl_suara, cons);
+                pnl_vote.add(lbl_suara);
+                
+                this.pnlResultColl.add(pnl_vote);
+            }
+        }
     }
 
     /**
@@ -29,14 +103,11 @@ public class Voter3 extends javax.swing.JFrame {
 
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
+        jScrollPane2 = new javax.swing.JScrollPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setText("Kamu Memilh : ");
-
-        jScrollPane1.setViewportView(jList1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -45,7 +116,7 @@ public class Voter3 extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(20, 20, 20)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane2)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -55,13 +126,13 @@ public class Voter3 extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(31, 31, 31)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(25, 25, 25)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel1)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(18, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(20, Short.MAX_VALUE))
         );
 
         pack();
@@ -94,18 +165,12 @@ public class Voter3 extends javax.swing.JFrame {
         }
         //</editor-fold>
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Voter3().setVisible(true);
-            }
-        });
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JList<String> jList1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     // End of variables declaration//GEN-END:variables
 }

@@ -3,11 +3,11 @@ package Kandidat;
 
 import java.io.Serializable;
 
-public class Kandidat implements Serializable {
+public class Kandidat implements Serializable, Comparable<Kandidat> {
     
-    int id;
-    String nama;
-    int JumlahSuara;
+    private int id;
+    private String nama;
+    private int JumlahSuara;
 
     public Kandidat(int id, String nama) {
         this.id = id;
@@ -45,6 +45,11 @@ public class Kandidat implements Serializable {
     
     public void upvote(){
         JumlahSuara++;
+    }
+
+    @Override
+    public int compareTo(Kandidat o) {
+        return this.getJumlahSuara() - o.getJumlahSuara();
     }
     
 }

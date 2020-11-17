@@ -138,9 +138,14 @@ public class Admin extends javax.swing.JFrame {
         try {
             int listSize = namaKandidat.size();
             toServer.writeObject(namaKandidat.toArray(new String[listSize]));
+            
+            JOptionPane.showMessageDialog(rootPane,
+                    "Nama kandidat berhasil ditambahkan",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(rootPane, 
-                    "Can't connect to server! Please check your internet connection or try to restart the application", 
+                    "Can't connect to server! Please check your internet connection or try to restart the program", 
                     "Connection Failed", 
                     JOptionPane.ERROR_MESSAGE);
         }

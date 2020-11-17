@@ -9,7 +9,7 @@ import Response.ClientIdentity;
 import java.net.Socket;
 import java.io.*;
 import javax.swing.JOptionPane;
-import java.util.ArrayList;
+import java.util.Scanner;
 /**
  *
  * @author HP
@@ -17,43 +17,123 @@ import java.util.ArrayList;
 public class Voter extends javax.swing.JFrame {
     String nama;
     int id;
+    
     ClientIdentity voterIdentity;
     Socket connection;
     ObjectInputStream fromServer;
     ObjectOutputStream toServer;
     
+    Scanner fileReader;
+    BufferedWriter fileWriter;
     /**
      * Creates new form Voter
      */
+    
+    @SuppressWarnings("OverridableMethodCallInConstructor")
     public Voter() {
-        initComponents();
-        /*
-        Akses file id.txt
-        Instansiasi voterIdentity pake id dari id.txt
-        Cek apakah id.txt memiliki nilai (pake if)
-        Kalau ada isi voterIdentity panggil makeConnection() lalu pindah ke voter2
-        Kalau tidak ada isi, panggil makeConnection() lalu bersiap menerima id dari server
-        */
+       initComponents();
+       this.setLocationRelativeTo(null);
+        try {
+            //scan files
+            this.fileReader =  new Scanner(new File ("src\\id.txt"));
+
+            //trigger action if the voter already registered
+            if(!readFileID("id").equals("")){
+                this.id = Integer.parseInt(readFileID("id"));
+                this.voterIdentity = new ClientIdentity("voter", this.id);
+                makeConnection();
+                
+                if(canVote()){
+                    this.nama = readFileID("nama");
+                    showVoter2();
+                }
+                else{
+                    //Show error dialog about disallow access to vote
+                    JOptionPane.showMessageDialog(rootPane, 
+                            "You already voted", 
+                            "Cannot Vote", 
+                            JOptionPane.ERROR_MESSAGE);
+
+                    //Terminating JVM
+                    System.exit(0);
+                }
+            }
+            //trigger action if the voter not registered yet
+            else{
+                this.voterIdentity = new ClientIdentity("voter", -1);
+                makeConnection();
+                
+                this.id = this.fromServer.readInt();
+                this.voterIdentity.setId(this.id);
+                
+                this.fileWriter = new BufferedWriter(new FileWriter("src\\id.txt"));
+                fileWriter.write(String.valueOf(this.id));
+                fileWriter.newLine();
+            }
+        } catch (FileNotFoundException ex) {
+            JOptionPane.showMessageDialog(rootPane, 
+                    "We cannot access your information data, please restart the program", 
+                    "File Access Failed", 
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (IOException ex) {
+            terminateSystem();
+        }
     }
     
-    public void makeConnection(){
-        try {
-            this.connection = new Socket("127.0.0.1", 50100);
-            this.toServer = new ObjectOutputStream(connection.getOutputStream());
-            this.fromServer = new ObjectInputStream(connection.getInputStream());
-            
-            //Mengirimkan voterIdentity ke server
-            toServer.writeObject(voterIdentity);
-        } catch (IOException ex) {
-            //Show error dialog about inablitiy to access server
-            JOptionPane.showMessageDialog(rootPane, 
-                    "Can't connect to server! Please check your internet connection or try to restart the application", 
-                    "Connection Failed", 
-                    JOptionPane.ERROR_MESSAGE);
-            
-            //Terminating JVM
-            System.exit(0);
+    //if flag=0 then this will return the id and if flag=1 then this will return the name
+    public String readFileID(String flag){
+        String data = "";
+        
+        if(flag.equals("id")){
+            while (this.fileReader.hasNextLine()){
+                data = this.fileReader.nextLine();
+                break;
+            }
         }
+        else if (flag.equals("nama")){
+            while (this.fileReader.hasNextLine()){
+                data = this.fileReader.nextLine();
+            }
+        }
+        
+        return data;
+    }
+    
+    public boolean canVote() throws IOException{
+        return this.fromServer.readBoolean();
+    }
+    
+    public void makeConnection() throws IOException{
+        this.connection = new Socket("127.0.0.1", 50100);
+        this.toServer = new ObjectOutputStream(connection.getOutputStream());
+        this.fromServer = new ObjectInputStream(connection.getInputStream());
+
+        //Mengirimkan voterIdentity ke server
+        toServer.writeObject(voterIdentity);
+    }
+    
+    //Terminate system if connection problem occurs
+    public void terminateSystem(){
+        //Show error dialog about inablitiy to access server
+        JOptionPane.showMessageDialog(rootPane, 
+                "Can't connect to server! Please check your internet connection or try to restart the program", 
+                "Connection Failed", 
+                JOptionPane.ERROR_MESSAGE);
+
+        //Terminating JVM
+        System.exit(0);
+    }
+    
+    public void showVoter2(){
+        //Mematikan windows yang aktif
+        dispose();
+
+        //Menampilkan jframe voter2
+        new Voter2(this.nama, 
+                   this.voterIdentity, 
+                   this.connection,
+                   this.fromServer,
+                   this.toServer);
     }
 
     /**
@@ -128,21 +208,22 @@ public class Voter extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
         if(!jTextField1.getText().equals("")){
-           this.nama = jTextField1.getText();
-           
-           //Mematikan windows yang aktif
-           dispose();
-           
-           //Menampilkan jframe voter2
-           Voter2 vote = new Voter2(this.nama, 
-                                    this.voterIdentity, 
-                                    this.connection,
-                                    this.fromServer,
-                                    this.toServer);
-           
-           vote.setLocationRelativeTo(null);
-           vote.setDefaultCloseOperation(EXIT_ON_CLOSE);
-           vote.setVisible(true);
+            try {
+                this.nama = jTextField1.getText();
+                this.fileWriter.write(this.nama);
+                this.fileWriter.flush();
+                
+                //Close file stream
+                this.fileReader.close();
+                this.fileWriter.close();
+                
+                showVoter2();
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(rootPane, 
+                    "We cannot access your information data, please restart the program", 
+                    "File Access Failed", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 

@@ -4,17 +4,25 @@ package view;
 import Response.ClientIdentity;
 import java.io.*;
 import java.net.Socket;
+import javax.swing.*;
+import java.awt.*;
+import Kandidat.Kandidat;
+import java.awt.event.ActionEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author HP
  */
 public class Voter2 extends javax.swing.JFrame {
-    String nama;
+    Kandidat[] listKandidat;
+    JPanel pnlVoteColl;
     ClientIdentity voterIdentity;
     Socket connection;
     ObjectInputStream fromServer;
     ObjectOutputStream toServer;
+    
     /**
      * Creates new form Voter2
      * @param nama
@@ -23,15 +31,98 @@ public class Voter2 extends javax.swing.JFrame {
      * @param fromServer
      * @param toServer
      */
+    @SuppressWarnings("OverridableMethodCallInConstructor")
     public Voter2(String nama, 
             ClientIdentity identity, 
             Socket connection, 
             ObjectInputStream fromServer, 
-            ObjectOutputStream toServer) {
-        initComponents();
+            ObjectOutputStream toServer){
         
+        this.voterIdentity = identity;
+        this.connection = connection;
+        this.fromServer = fromServer;
+        this.toServer = toServer;
+        
+        //Show Form
+        showForm();
+        jLabel1.setText(nama);
+        jLabel2.setText(String.valueOf(this.voterIdentity.getId()));
+        
+        //Fetch kandidat data from server
+        EventQueue.invokeLater(() -> {
+            try {
+                this.listKandidat = (Kandidat[]) fromServer.readObject();
+                constructComp();
+                jScrollPane1.setViewportView(this.pnlVoteColl);
+            }catch (IOException | ClassNotFoundException ex) {
+                Logger.getLogger(Voter2.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
     }
+    
+    public void showForm(){
+        initComponents();
+        this.setLocationRelativeTo(null);
+        this.setVisible(true);
+    }
+    
+    public void constructComp(){
+        this.pnlVoteColl = new JPanel();
+        this.pnlVoteColl.setLayout(new BoxLayout(this.pnlVoteColl, BoxLayout.Y_AXIS));
+        
+        if(this.listKandidat != null){
+            for(Kandidat calon : this.listKandidat){
+                int idCalon = calon.getId();
+                String namaCalon = calon.getNama();
+                
+                JPanel pnl_vote = new JPanel();
+                pnl_vote.setSize(384, 14);
+                pnl_vote.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.LIGHT_GRAY));
+                GridBagLayout gridbag = new GridBagLayout();
+                GridBagConstraints cons = new GridBagConstraints();
+                pnl_vote.setLayout(gridbag);
+                
+                JButton btn_vote = new JButton("Vote");
+                btn_vote.addActionListener((ActionEvent e) -> {
+                    try {
+                        this.toServer.writeInt(idCalon);
+                        
+                        showVoter3(namaCalon);
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(rootPane, 
+                            "Your vote request was failed", 
+                            "Request Failed", 
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                });
+                
+                cons.gridwidth = GridBagConstraints.RELATIVE;
+                cons.weightx = 2.0;
+                JLabel lbl_nama = new JLabel(namaCalon);
+                gridbag.setConstraints(lbl_nama, cons);
+                pnl_vote.add(lbl_nama);
+                
+                cons.gridwidth = GridBagConstraints.REMAINDER;
+                cons.weightx = 1.0;
+                gridbag.setConstraints(btn_vote, cons);
+                pnl_vote.add(btn_vote);
+                
+                this.pnlVoteColl.add(pnl_vote);
+            }
+        }
+    }
+    
+    public void showVoter3(String namaCalon){
+        //Mematikan windows yang aktif
+        dispose();
 
+        //Menampilkan jframe voter3
+        new Voter3(namaCalon, 
+                   this.connection,
+                   this.fromServer,
+                   this.toServer);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -43,16 +134,13 @@ public class Voter2 extends javax.swing.JFrame {
 
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jList2 = new javax.swing.JList<>();
+        jScrollPane1 = new javax.swing.JScrollPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setText("Nama Voter");
 
         jLabel2.setText("ID Voter");
-
-        jScrollPane2.setViewportView(jList2);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -61,9 +149,9 @@ public class Voter2 extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane1)
                     .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE)
-                    .addComponent(jScrollPane2))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -74,7 +162,7 @@ public class Voter2 extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 224, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 224, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -107,19 +195,11 @@ public class Voter2 extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(Voter2.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-//                new Voter2().setVisible(true);
-            }
-        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JList<String> jList2;
-    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 }
